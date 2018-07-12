@@ -7,12 +7,109 @@
 //
 
 import UIKit
+import Speech
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, SFSpeechRecognizerDelegate {
 
+	@IBOutlet weak var textView: UITextView!
+	@IBOutlet weak var recordButton: UIButton!
+	
+	let speechRecognizer = SFSpeechRecognizer(locale: Locale.init(identifier: "ru"))
+	let audioEngine = AVAudioEngine()
+	
+	var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
+	var recognitionTask: SFSpeechRecognitionTask?
+	
+	
+	
+	@IBAction func recordButtonTapped(_ sender: UIButton) {
+	}
+
+	
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		// Do any additional setup after loading the view, typically from a nib.
+		
+		recordButton.isEnabled = false
+		
+		speechRecognizer?.delegate = self
+		
+		SFSpeechRecognizer.requestAuthorization { status in
+			var buttonState = false
+			
+			switch status {
+			case .authorized:
+				buttonState = false
+			case .denied, .notDetermined, .restricted: break
+			}
+			
+			DispatchQueue.main.async {
+				self.recordButton.isEnabled = buttonState
+			}
+			
+		}
+	}
+	
+	func startRecording() {
+		
+		if recognitionTask != nil {
+			recognitionTask?.cancel()
+			recognitionTask = nil
+		}
+		
+		let audioSession = AVAudioSession.sharedInstance()
+		do {
+			try audioSession.setCategory(AVAudioSessionCategoryRecord)
+			try audioSession.setMode(AVAudioSessionModeMeasurement)
+			try audioSession.setActive(true, with: .notifyOthersOnDeactivation)
+		} catch {
+			print(error.localizedDescription)
+		}
+		
+		recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
+		
+		let inputNode = audioEngine.inputNode
+		
+		guard let recognitionRequest = recognitionRequest else { return }
+		
+		recognitionRequest.shouldReportPartialResults = true
+		
+		recognitionTask = speechRecognizer?.recognitionTask(with: recognitionRequest) {
+			result, error in
+			
+			var isFinal = false
+			
+			if result != nil {
+				self.textView.text = result?.bestTranscription.formattedString
+				isFinal = (result?.isFinal)!
+			}
+			
+			if error != nil || isFinal {
+				self.audioEngine.stop()
+				inputNode.removeTap(onBus: 0)
+				
+				self.recognitionRequest = nil
+				self.recognitionTask = nil
+				
+				self.recordButton.isEnabled = true
+			}
+		}
+		
+		let format = inputNode.outputFormat(forBus: 0)
+		
+		inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
+			self.recognitionRequest?.append(buffer)
+		}
+		
+		audioEngine.prepare()
+		
+		do {
+			try audioEngint.start()
+		} catch {
+			print(error.localizedDescription)
+		}
+		
+		textView.text = "Помедленнее...Я записываю..."
+		
 	}
 
 	override func didReceiveMemoryWarning() {

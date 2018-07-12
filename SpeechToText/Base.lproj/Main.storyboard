@@ -40,6 +40,9 @@
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="tdo-Ud-x1o">
                                 <rect key="frame" x="135" y="328.5" width="104" height="30"/>
                                 <state key="normal" title="Начать запись"/>
+                                <connections>
+                                    <action selector="recordButtonTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="QJ5-7y-uLX"/>
+                                </connections>
                             </button>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
@@ -53,6 +56,10 @@
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
+                    <connections>
+                        <outlet property="recordButton" destination="tdo-Ud-x1o" id="HTb-29-uSb"/>
+                        <outlet property="textView" destination="zIq-ki-cqZ" id="Uk4-2o-nY9"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
