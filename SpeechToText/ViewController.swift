@@ -9,7 +9,7 @@
 import UIKit
 import Speech
 
-class ViewController: UIViewController, SFSpeechRecognizerDelegate {
+class ViewController: UIViewController {
 
 	@IBOutlet weak var textView: UITextView!
 	@IBOutlet weak var recordButton: UIButton!
@@ -23,6 +23,16 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate {
 	
 	
 	@IBAction func recordButtonTapped(_ sender: UIButton) {
+		if audioEngine.isRunning {
+			audioEngine.stop()
+			
+			recognitionRequest?.endAudio()
+			recordButton.isEnabled = false
+			recordButton.setTitle("Начать запись", for: .normal)
+		} else {
+			startRecording()
+			recordButton.setTitle("Остановить запись", for: .normal)
+		}
 	}
 
 	
@@ -38,7 +48,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate {
 			
 			switch status {
 			case .authorized:
-				buttonState = false
+				buttonState = true
 			case .denied, .notDetermined, .restricted: break
 			}
 			
@@ -103,7 +113,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate {
 		audioEngine.prepare()
 		
 		do {
-			try audioEngint.start()
+			try audioEngine.start()
 		} catch {
 			print(error.localizedDescription)
 		}
@@ -118,5 +128,15 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate {
 	}
 
 
+}
+
+extension ViewController: SFSpeechRecognizerDelegate {
+	func speechRecognizer(_ speechRecognizer: SFSpeechRecognizer, availabilityDidChange available: Bool) {
+		if available {
+			recordButton.isEnabled = true
+		} else {
+			recordButton.isEnabled = false
+		}
+	}
 }
 
